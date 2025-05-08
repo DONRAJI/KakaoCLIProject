@@ -10,6 +10,10 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+      <meta-data
+        android:name="com.kakao.sdk.AppKey"
+        android:value="@string/kakao_app_key" />
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -22,5 +26,18 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+      <activity
+   android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+   android:exported="true">
+  <intent-filter>
+      <action android:name="android.intent.action.VIEW" />
+      <category android:name="android.intent.category.DEFAULT" />
+      <category android:name="android.intent.category.BROWSABLE" />
+
+      <!-- Redirect URI: "kakao{NATIVE_APP_KEY}://oauth“ -->
+      <data android:host="oauth"
+            android:scheme="kakaoc370fdef8583ea0ea65f89dfdf182d74" />
+  </intent-filter>
+</activity>
     </application>
 </manifest>
