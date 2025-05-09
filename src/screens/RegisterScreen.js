@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, TextInput, Button, Alert, FlatList, TouchableOpacity, Text, Keyboard } from 'react-native';
 import axios from 'axios';
+
+// 카카오 REST API KEY (환경변수로 관리 권장)
+const KAKAO_REST_API_KEY = '47143c85474b6ee576fbdd249a01e5e1';
 
 const RegisterScreen = ({ navigation }) => {
   const [form, setForm] = useState({
@@ -11,9 +14,55 @@ const RegisterScreen = ({ navigation }) => {
     password: '',
     regionInput: '',
   });
+  const [addressResults, setAddressResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // debounce 방지용 ref
+  const searchTimeout = useRef(null);
 
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
+
+    if (key === 'regionInput') {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(() => {
+        if (value.trim().length > 1) {
+          console.log('[LOG] 주소 검색 시작:', value.trim());
+          searchAddress(value.trim());
+        } else {
+          setAddressResults([]);
+        }
+      }, 500);
+    }
+  };
+
+  // 카카오 주소 검색 API
+  const searchAddress = async (query) => {
+    setLoading(true);
+    try {
+      const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`;
+      console.log('[LOG] 카카오 주소 API 호출:', url);
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `KakaoAK ${KAKAO_REST_API_KEY}`,
+        },
+      });
+      setAddressResults(response.data.documents || []);
+      console.log('[LOG] 주소 후보 개수:', response.data.documents.length);
+    } catch (error) {
+      setAddressResults([]);
+      console.error('[ERROR] 주소 검색 실패:', error.message);
+    }
+    setLoading(false);
+  };
+
+  // 주소 후보 중 하나 선택 시
+  const handleSelectAddress = (item) => {
+    const region = `${item.address.region_1depth_name} ${item.address.region_2depth_name} ${item.address.region_3depth_name}`;
+    setForm(prev => ({ ...prev, regionInput: region }));
+    setAddressResults([]);
+    Keyboard.dismiss();
+    console.log('[LOG] 주소 선택:', region);
   };
 
   const parseRegion = (raw) => {
@@ -26,19 +75,17 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleSubmit = async () => {
     try {
+      console.log('[LOG] 회원가입 시도');
       const region = parseRegion(form.regionInput);
-      console.log('[DEBUG] 사용자 입력 regionInput:', form.regionInput);
-      console.log('[DEBUG] 파싱된 region:', region);
 
       const requestBody = {
         email: form.email,
         name: form.name,
-        age: parseInt(form.age, 10),
+        age: parseInt(form.age, 10).toString(),
         phone: form.phone.replace(/-/g, ''),
         password: form.password,
         region: region,
       };
-
       console.log('[DEBUG] 전송할 데이터:', JSON.stringify(requestBody, null, 2));
 
       await axios.post(
@@ -59,11 +106,7 @@ const RegisterScreen = ({ navigation }) => {
         Alert.alert('주소 오류', error.message);
         return;
       }
-
       console.error('[ERROR] 회원가입 실패:', error.message);
-      if (error.response) {
-        console.error('[ERROR] 응답 데이터:', JSON.stringify(error.response.data, null, 2));
-      }
       Alert.alert('회원가입 실패', error.response?.data?.message || '오류가 발생했습니다.');
     }
   };
@@ -104,11 +147,38 @@ const RegisterScreen = ({ navigation }) => {
         style={{ borderBottomWidth: 1, marginBottom: 10 }}
       />
       <TextInput
-        placeholder="주소 (예: 경기도 용인시 기흥구)"
+        placeholder="주소 검색 (예: 경기 용인시)"
         value={form.regionInput}
         onChangeText={(text) => handleChange('regionInput', text)}
-        style={{ borderBottomWidth: 1, marginBottom: 20 }}
+        style={{ borderBottomWidth: 1, marginBottom: 10 }}
       />
+      {/* 주소 자동완성 리스트 */}
+      {addressResults.length > 0 && (
+        <FlatList
+          data={addressResults}
+          keyExtractor={(item) => item.address.address_name}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={{
+                paddingVertical: 8,
+                borderBottomWidth: 0.5,
+                borderColor: '#ccc',
+                backgroundColor: '#fafafa'
+              }}
+              onPress={() => handleSelectAddress(item)}
+            >
+              <Text>{`${item.address.region_1depth_name} ${item.address.region_2depth_name} ${item.address.region_3depth_name}`}</Text>
+            </TouchableOpacity>
+          )}
+          style={{
+            maxHeight: 180,
+            marginBottom: 10,
+            borderWidth: 1,
+            borderColor: '#eee',
+            borderRadius: 4,
+          }}
+        />
+      )}
       <Button title="회원가입" onPress={handleSubmit} />
     </View>
   );
