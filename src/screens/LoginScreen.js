@@ -36,7 +36,7 @@ const LoginScreen = ({ navigation }) => {
         const message = error.response.data?.message || '알 수 없는 오류가 발생했습니다.';
   
         if (status === 400) {
-          Alert.alert('로그인 실패', '입력한 전화번호 또는 비밀번호가 잘못되었습니다.');
+          Alert.alert('로그인 실패', '입력한 이메일 또는 비밀번호가 잘못되었습니다.');
         } else if (status === 401) {
           Alert.alert('로그인 실패', '인증에 실패했습니다. 다시 시도해주세요.');
         } else {
@@ -55,10 +55,10 @@ const LoginScreen = ({ navigation }) => {
 
       <TextInput
         style={styles.input}
-        placeholder="전화번호 (01012345678)"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
+        placeholder="이메일"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
       />
 
       <TextInput
