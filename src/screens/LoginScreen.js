@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Button } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { Input, Button, Text, Divider } from 'react-native-elements';
 import axios from 'axios';
-import SocialLoginButton from '../components/SocialLoginButton'; // SocialLoginButton 가져오기
+import SocialLoginButton from '../components/SocialLoginButton'; // 소셜 로그인 버튼
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -14,27 +15,26 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    setLoading(true);
     try {
-      const response = await axios.post('https://port-0-node-m5bzvrlhf1da1cc6.sel4.cloudtype.app/api/auth/login', {
-        email: email,
-        password: password,
-      });
-  
+      const response = await axios.post(
+        'https://port-0-backend-server-m5bzvrlhf1da1cc6.sel4.cloudtype.app/api/auth/login',
+        { email, password }
+      );
+
       const data = response.data;
-  
+
       if (data.token) {
         Alert.alert('환영합니다', '로그인에 성공했습니다!');
-        navigation.navigate('Home');
+        navigation.replace('MainTab');
       } else {
         Alert.alert('로그인 실패', data.message || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      console.error('로그인 오류:', error.response?.data || error.message);
-  
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || '알 수 없는 오류가 발생했습니다.';
-  
+
         if (status === 400) {
           Alert.alert('로그인 실패', '입력한 이메일 또는 비밀번호가 잘못되었습니다.');
         } else if (status === 401) {
@@ -43,43 +43,69 @@ const LoginScreen = ({ navigation }) => {
           Alert.alert('로그인 실패', message);
         }
       } else {
-        // 네트워크 오류 또는 기타 오류 처리
         Alert.alert('서버 오류', '서버와 연결할 수 없습니다.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>로그인</Text>
+      <Text h3 style={styles.title}>로그인</Text>
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="이메일"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        leftIcon={{ type: 'feather', name: 'mail', color: '#888' }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        containerStyle={styles.inputContainer}
       />
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="비밀번호"
-        secureTextEntry
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        leftIcon={{ type: 'feather', name: 'lock', color: '#888' }}
+        containerStyle={styles.inputContainer}
       />
 
-      <Button title="로그인" onPress={handleLogin} />
+      <Button
+        title="로그인"
+        onPress={handleLogin}
+        loading={loading}
+        buttonStyle={styles.loginButton}
+        containerStyle={{ marginBottom: 10 }}
+      />
 
       <View style={styles.linkContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>회원가입</Text>
-        </TouchableOpacity>
-        <Text style={styles.divider}> | </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.link}>비밀번호 찾기</Text>
-        </TouchableOpacity>
+        <Text
+          style={styles.link}
+          onPress={() => navigation.navigate('Register')}
+        >
+          회원가입
+        </Text>
+        <Divider orientation="vertical" width={1} style={styles.divider} />
+        <Text
+          style={styles.link}
+          onPress={() => navigation.navigate('ForgotPassword')}
+        >
+          비밀번호 찾기
+        </Text>
+        <Divider orientation="vertical" width={1} style={styles.divider} />
+        <Text
+          style={styles.link}
+          onPress={() => navigation.navigate('FindUserId')} // 아이디 찾기 화면으로 이동
+        >
+          아이디 찾기
+        </Text>
       </View>
+
+      <Divider style={{ marginVertical: 25 }} />
 
       <View style={styles.socialContainer}>
         <SocialLoginButton type="kakao" />
@@ -96,34 +122,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 30,
     textAlign: 'center',
+    marginBottom: 30,
+    fontWeight: 'bold',
   },
-  input: {
-    height: 45,
-    borderColor: '#ccc',
-    borderWidth: 1,
+  inputContainer: {
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: '#007BFF',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
+    height: 48,
   },
   linkContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
   },
   link: {
     color: '#007BFF',
     fontSize: 14,
+    marginHorizontal: 6,
   },
   divider: {
-    marginHorizontal: 5,
-    color: '#888',
+    height: 16,
+    marginHorizontal: 3,
+    backgroundColor: '#ccc',
   },
   socialContainer: {
-    marginTop: 30,
+    alignItems: 'center',
   },
 });
 

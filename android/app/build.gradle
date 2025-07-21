@@ -123,10 +123,24 @@ dependencies {
 
     // Kakao SDK
     implementation("com.kakao.sdk:v2-user:2.19.0")
+    implementation project(':react-native-splash-screen')
 }
+configurations.all {
+        exclude group: 'com.android.support', module: 'support-compat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude group: 'com.android.support', module: 'support-core-utils'
+        exclude group: 'com.android.support', module: 'support-core-ui'
+        exclude group: 'com.android.support', module: 'support-fragment'
+        exclude group: 'com.android.support', module: 'support-media-compat'
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-vector-drawable'
+        exclude group: 'com.android.support', module: 'animated-vector-drawable'
+    }
+
 allprojects {
     repositories {
         google()
         mavenCentral() // ✅ 이거 꼭 있어야 함!
     }
 }
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")

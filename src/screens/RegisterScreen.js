@@ -81,7 +81,7 @@ const RegisterScreen = ({ navigation }) => {
       const requestBody = {
         email: form.email,
         name: form.name,
-        age: parseInt(form.age, 10).toString(),
+        age: parseInt(form.age, 10),
         phone: form.phone.replace(/-/g, ''),
         password: form.password,
         region: region,
@@ -89,7 +89,7 @@ const RegisterScreen = ({ navigation }) => {
       console.log('[DEBUG] 전송할 데이터:', JSON.stringify(requestBody, null, 2));
 
       await axios.post(
-        'https://port-0-node-m5bzvrlhf1da1cc6.sel4.cloudtype.app/api/auth/register',
+        'https://port-0-backend-server-m5bzvrlhf1da1cc6.sel4.cloudtype.app/api/auth/register',
         requestBody,
         {
           headers: {
@@ -108,6 +108,7 @@ const RegisterScreen = ({ navigation }) => {
       }
       console.error('[ERROR] 회원가입 실패:', error.message);
       Alert.alert('회원가입 실패', error.response?.data?.message || '오류가 발생했습니다.');
+      console.log('[DEBUG] 서버 응답:', error.response?.data);
     }
   };
 

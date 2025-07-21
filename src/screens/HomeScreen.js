@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.js
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -26,6 +25,13 @@ const HomeScreen = ({ navigation }) => {
         onPress={() => navigation.navigate('RecentRoutes')}
       >
         <Text style={styles.buttonText}>🕓 최근 경로</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('ChangePassword')}
+      >
+        <Text style={styles.buttonText}>🔒 비밀번호 변경</Text>
       </TouchableOpacity>
     </View>
   );
